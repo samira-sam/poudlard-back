@@ -35,7 +35,7 @@ router.post(
 router.put(
     "/:id",
     //authenticate,  --------------------> pour parametrer l'accès aux routes selon le role
-    //authorizeRole(['admin']), -----------|                    
+    //authorizeRole(['admin']),                    
     ProfesseurController.updateProfesseur
 );
 

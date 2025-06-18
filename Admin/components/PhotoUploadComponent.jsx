@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Button, Text, Input, Link } from '@adminjs/design-system';
-import { BasePropertyProps } from 'adminjs';
+
 
 const PhotoUploadComponent = (props) => {
   console.log("PhotoUploadComponent received props:", props);

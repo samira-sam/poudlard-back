@@ -1,11 +1,11 @@
 // utilisateurService.test.js
 
 // Importe le service à tester.
-// Assure-toi que le chemin d'accès est correct par rapport à l'emplacement de ton fichier de test.
+
 const UtilisateurService = require('../Services/UtilisateurService');
 
-// Importe les modèles et la bibliothèque bcrypt que le service utilise.
-// Nous allons les moquer pour isoler le service.
+// Import modèles et bibli bcrypt que le service utilise.
+//  moquer pour isoler le service.
 const Utilisateur = require('../Models/Utilisateur');
 const Role = require('../Models/Role');
 const bcrypt = require('bcrypt');

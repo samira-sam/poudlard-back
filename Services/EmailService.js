@@ -1,4 +1,4 @@
-require('dotenv').config(); // ← À AJOUTER ABSOLUMENT pour EMAIL_USER, EMAIL_PASS
+require('dotenv').config(); 
 
 const nodemailer = require('nodemailer');
 
@@ -11,12 +11,12 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// Test immédiat du transporteur
+// Test  du transporteur
 transporter.verify(function(error, success) {
   if (error) {
-    console.error('❌ Échec de la connexion au service mail :', error);
+    console.error('Échec de la connexion au service mail :', error);
   } else {
-    console.log('✅ Transporteur mail prêt à envoyer.');
+    console.log(' Transporteur mail prêt à envoyer.');
   }
 });
 
@@ -39,12 +39,41 @@ async function envoyerEmailConfirmation(emailUtilisateur, nomUtilisateur) {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log(`📨 Email de confirmation envoyé à ${emailUtilisateur}`);
+    console.log(` Email de confirmation envoyé à ${emailUtilisateur}`);
   } catch (error) {
-    console.error(`❌ Erreur lors de l'envoi de l'email à ${emailUtilisateur} :`, error);
+    console.error(`Erreur lors de l'envoi de l'email à ${emailUtilisateur} :`, error);
+  }
+}
+
+
+async function envoyerEmailReinitialisation(emailUtilisateur, token) {
+  const resetLink = `${process.env.FRONTEND_URL}/reinitialiser-mot-de-passe?token=${token}`;
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: emailUtilisateur,
+    subject: '🔐 Réinitialisation de ton mot de passe Poudlard',
+    html: `
+      <h2>Demande de réinitialisation de mot de passe</h2>
+      <p>Nous avons reçu une demande de réinitialisation de ton mot de passe pour ton compte Poudlard.</p>
+      <p>Si tu es à l’origine de cette demande, clique sur le lien ci-dessous :</p>
+      <a href="${resetLink}" target="_blank">Réinitialiser mon mot de passe</a>
+      <p>Ce lien est valable pendant 1 heure.</p>
+      <p>Si tu n’es pas à l’origine de cette demande, ignore ce message.</p>
+      <p>L’équipe de Poudlard</p>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Email de réinitialisation envoyé à ${emailUtilisateur}`);
+  } catch (error) {
+    console.error(`Erreur lors de l'envoi de l'e-mail à ${emailUtilisateur} :`, error);
   }
 }
 
 module.exports = {
-  envoyerEmailConfirmation
+  envoyerEmailConfirmation,
+    envoyerEmailConfirmation,
+  envoyerEmailReinitialisation
 };

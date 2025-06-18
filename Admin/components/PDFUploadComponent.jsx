@@ -9,10 +9,10 @@ const PDFUploadComponent = (props) => {
 
   const handleUpload = async (files) => {
     const formData = new FormData()
-    formData.append('pdf', files[0]) // ✅ très important
+    formData.append('pdf', files[0]) // très important
 
     try {
-      const response = await fetch('http://localhost:3033/admin/upload/pdf', {  // <-- URL complète et correcte
+      const response = await fetch('http://localhost:3033/admin/upload/pdf', {  // URL complète et correcte
         method: 'POST',
         body: formData,
       })
@@ -24,7 +24,7 @@ const PDFUploadComponent = (props) => {
       const data = await response.json()
       if (data.filename) {
         console.log('PDF upload success:', data.filename)
-        onChange(property.name, data.filename) // ✅ très important : on met à jour le champ avec le nom du fichier
+        onChange(property.name, data.filename) // très important : on met à jour le champ avec le nom du fichier
       } else {
         console.error('PDF upload failed:', data)
       }

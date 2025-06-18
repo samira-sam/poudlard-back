@@ -1,4 +1,4 @@
-const { Model, DataTypes } = require("sequelize");
+/*const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../Config/sequelize");
 const { text } = require("body-parser");
 
@@ -56,6 +56,75 @@ Utilisateur.init(
     idAttribute: 'id_utilisateur',
   }
   
+);
+
+module.exports = Utilisateur;*/
+
+
+const { Model, DataTypes } = require("sequelize");
+const sequelize = require("../Config/sequelize");
+
+class Utilisateur extends Model {}
+
+Utilisateur.init(
+  {
+    id_utilisateur: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+      references: {
+        model: 'utilisateur',
+        key: 'id_utilisateur',
+      },
+    },
+    nom: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    prenom: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    email: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      unique: true,
+    },
+    mot_de_passe: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    photo: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    id_role: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'id_role',
+      references: {
+        model: 'role',
+        key: 'id_role',
+      },
+    },
+
+    // 🔐 Champs pour le mot de passe oublié
+    resetPasswordExpires: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    resetPasswordToken: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+
+  },
+  {
+    sequelize,
+    tableName: "utilisateur",
+    timestamps: false,
+    idAttribute: 'id_utilisateur',
+  }
 );
 
 module.exports = Utilisateur;
