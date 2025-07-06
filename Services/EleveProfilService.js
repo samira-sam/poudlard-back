@@ -760,12 +760,14 @@ class EleveProfilService {
     return {
       nom: eleve.utilisateur.nom,
       prenom: eleve.utilisateur.prenom,
+      email: eleve.utilisateur.email,
       photo: eleve.utilisateur.photo,
       contact_parent: eleve.contact_parent,
       annee: eleve.anneeEtude?.nom,
       maison: eleve.maison?.nom,
       matieres: resumeMatieres,
       moyenne_generale: moyenneGenerale,
+     
     };
   }
 async updateProfil(id_utilisateur, profilData) {
@@ -775,7 +777,7 @@ async updateProfil(id_utilisateur, profilData) {
         include: [{
           model: Utilisateur,
           as: 'utilisateur',
-          attributes: ['id_utilisateur', 'nom', 'prenom', 'photo']
+          attributes: ['id_utilisateur', 'nom', 'prenom', 'photo', 'email']
         }]
       });
 
@@ -793,6 +795,11 @@ async updateProfil(id_utilisateur, profilData) {
       if (profilData.prenom !== undefined) {
         updatedUtilisateurData.prenom = profilData.prenom;
       }
+
+      if (profilData.email !== undefined) {
+        updatedUtilisateurData.email = profilData.email;
+      }
+
       if (profilData.photo !== undefined) {
         updatedUtilisateurData.photo = profilData.photo;
       }
