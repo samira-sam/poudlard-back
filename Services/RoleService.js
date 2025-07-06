@@ -75,7 +75,7 @@ class RoleService {
     try {
       console.log("[RoleService] Suppression des anciennes entrées si nécessaires...");
       await Promise.all([
-        // CORRECTION ICI : Utilisation de la clé primaire de chaque table
+        
         !isEleve && Eleve.destroy({ where: { id_eleve: userId } }),
         !isProfesseur && Professeur.destroy({ where: { id_professeur: userId } }),
         !isAdmin && Admin.destroy({ where: { id_admin: userId } }),
@@ -83,11 +83,11 @@ class RoleService {
 
       if (isEleve) {
         console.log(`[RoleService] Création/validation de l'entrée Eleve pour l'utilisateur ${userId}`);
-        // CORRECTION ICI : Utilisation de la clé primaire de la table eleve
+     
         await Eleve.findOrCreate({ where: { id_eleve: userId }, defaults: { id_eleve: userId } });
       } else if (isProfesseur) {
         console.log(`[RoleService] Création/validation de l'entrée Professeur pour l'utilisateur ${userId}`);
-        // CORRECTION ICI : Utilisation de la clé primaire de la table professeur
+        
         await Professeur.findOrCreate({
           where: { id_professeur: userId },
           defaults: {
@@ -105,7 +105,7 @@ class RoleService {
         console.warn(`[RoleService] Aucun rôle reconnu pour l’ID ${roleId}. Rien créé.`);
       }
     } catch (error) {
-      console.error(`[RoleService] ❌ Erreur lors de la synchronisation de l'utilisateur ${userId} :`, error);
+      console.error(`[RoleService] Erreur lors de la synchronisation de l'utilisateur ${userId} :`, error);
       // Re-jeter l'erreur pour qu'elle soit capturée plus haut si nécessaire
       throw error;
     }
@@ -122,7 +122,7 @@ class RoleService {
       ]);
       console.log(`[RoleService] Suppression terminée pour utilisateurs : ${userIds}`);
     } catch (error) {
-      console.error("[RoleService] ❌ Erreur lors de la suppression des rôles :", error);
+      console.error("[RoleService] Erreur lors de la suppression des rôles :", error);
       throw error; // Re-jeter l'erreur pour qu'elle soit capturée plus haut si nécessaire
     }
   }

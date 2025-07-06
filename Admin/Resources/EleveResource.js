@@ -50,10 +50,10 @@ module.exports = {
 
       // Champs virtuels pour afficher nom et prénom depuis utilisateur lié
       'utilisateur.nom': {
-        isVisible: { list: true, filter: true, show: true, edit: false },
+        isVisible: { list: true, filter: true, show: true, edit: true },
       },
       'utilisateur.prenom': {
-        isVisible: { list: true, filter: true, show: true, edit: false },
+        isVisible: { list: true, filter: true, show: true, edit: true },
       },
     },
     listProperties: ['id_eleve', 'utilisateur.nom', 'utilisateur.prenom', 'id_maison', 'id_annee_etude'],

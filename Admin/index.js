@@ -1,5 +1,4 @@
-
-const sequelize = require('../Config/sequelize');
+/*const sequelize = require('../Config/sequelize');
 
 // Import des ressources depuis le dossier resources
 const ProfesseurResource = require('./Resources/ProfesseurResource');
@@ -96,7 +95,7 @@ async function setupAdminJS() {
   return { adminJs, adminRouter };
 }
 
-module.exports = setupAdminJS;
+module.exports = setupAdminJS;*/
 
 /*const path = require('path');
 const sequelize = require('../Config/sequelize');
@@ -153,7 +152,7 @@ async function setupAdminJS() {
     },
   };
 
- /* // Ressource Utilisateur avec composant photo upload changer 4juin 13h52
+  // Ressource Utilisateur avec composant photo upload changer 4juin 13h52
   const Utilisateur = {
     resource: UtilisateurResource.resource,
     options: {
@@ -169,8 +168,8 @@ async function setupAdminJS() {
           },
         },
       },
-    },
-  };//meme code suite*/
+    },  
+  };*///meme code suite*/
 /*const Utilisateur = {
   resource: UtilisateurResource.resource,
   options: {
@@ -252,7 +251,7 @@ module.exports = setupAdminJS;
 */
 
 
-/*const path = require('path');
+const path = require('path');
 const sequelize = require('../Config/sequelize');
 
 // Import des ressources (sans AdminJS dedans)
@@ -395,4 +394,4 @@ async function setupAdminJS() {
   return { adminJs, adminRouter };
 }
 
-module.exports = setupAdminJS;*/
+module.exports = setupAdminJS;

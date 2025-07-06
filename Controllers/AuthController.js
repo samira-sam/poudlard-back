@@ -12,14 +12,37 @@ class AuthController {
   }
 
   // Connexion
-  async login(req, res) {
+ /* version d'aujourdhui async login(req, res) {
     try {
       const { token, utilisateur } = await AuthService.login(req.body);
       res.json({ token, utilisateur });
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
+  }*/ // Connexion
+async login(req, res) {
+  try {
+    const { token, utilisateur } = await AuthService.login(req.body);
+
+    // On vérifie le rôle
+    if (utilisateur.role?.name === 'admin') {
+      // Cookie HTTP Only sécurisé
+      res.cookie('admin_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // true en prod avec HTTPS
+        sameSite: 'Strict',
+        maxAge: 3 * 60 * 60 * 1000 // 3 heures
+      });
+
+      return res.json({ message: "Connexion admin réussie", utilisateur });
+    }
+
+    // Pour tous les autres : token dans la réponse
+    res.json({ token, utilisateur });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
+}
 
   // Récupération de l'utilisateur connecté
   /*async getUser(req, res) {

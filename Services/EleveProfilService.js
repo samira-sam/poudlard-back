@@ -209,7 +209,7 @@ class EleveProfilService {
 
 module.exports = new EleveProfilService();*/
 
-const Utilisateur = require('../Models/Utilisateur');
+/*const Utilisateur = require('../Models/Utilisateur');
 const Eleve = require('../Models/Eleve');
 const AnneeEtude = require('../Models/AnneeEtude');
 const Maison = require('../Models/Maison');
@@ -420,4 +420,407 @@ class EleveProfilService {
   }
 }
 
+module.exports = new EleveProfilService();*/
+
+
+
+
+/*const Utilisateur = require('../Models/Utilisateur');
+const Eleve = require('../Models/Eleve');
+const AnneeEtude = require('../Models/AnneeEtude');
+const Maison = require('../Models/Maison');
+const Matiere = require('../Models/Matiere');
+const Note = require('../Models/Note');
+const Professeur = require('../Models/Professeur');
+const { Op } = require('sequelize');
+
+class EleveProfilService {
+  async getProfilByUtilisateurId(id_utilisateur) {
+    const eleve = await Eleve.findOne({
+      where: { id_eleve: id_utilisateur },
+      include: [
+        {
+          model: Utilisateur,
+          as: 'utilisateur',
+          attributes: ['nom', 'prenom', 'photo', 'email', 'id_role'],
+        },
+        {
+          model: AnneeEtude,
+          as: 'anneeEtude',
+          attributes: ['nom'],
+        },
+        {
+          model: Maison,
+          as: 'maison',
+          attributes: ['nom'],
+        },
+        {
+          model: Matiere,
+          as: 'matieresSuivies',
+          attributes: ['id_matiere', 'nom', 'description'],
+          through: { attributes: [] }
+        },
+      ],
+    });
+
+    if (!eleve) {
+      console.log(`Aucun élève trouvé pour l'ID utilisateur ${id_utilisateur}.`);
+      return null;
+    }
+
+    const notes = await Note.findAll({
+      where: { id_eleve: eleve.id_eleve },
+      include: [
+        {
+          model: Professeur,
+          as: 'professeurEvaluateur',
+          attributes: ['id_professeur', 'fonction'],
+          include: [
+            {
+              model: Matiere,
+              as: 'matiereEnseignee',
+              attributes: ['id_matiere', 'nom'],
+            },
+            {
+              model: Utilisateur,
+              as: 'utilisateur',
+              attributes: ['nom', 'prenom'],
+            },
+          ],
+        },
+      ],
+    });
+
+    const matieresDetails = {};
+
+    for (const matiereSuivie of eleve.matieresSuivies) {
+      matieresDetails[matiereSuivie.id_matiere] = {
+        id_matiere: matiereSuivie.id_matiere,
+        nom: matiereSuivie.nom, // CHANGEMENT ICI
+        professeur: 'Non assigné',
+        notes_individuelles: [],
+        commentaires_globaux: [],
+      };
+    }
+
+    for (const note of notes) {
+      const professeur = note.professeurEvaluateur;
+      const matiereEnseigneeParProf = professeur?.matiereEnseignee;
+
+      if (!professeur || !matiereEnseigneeParProf) {
+        console.warn(`Note #${note.id_note} sans professeur ou matière enseignée associée.`);
+        continue;
+      }
+
+      const idMatiere = matiereEnseigneeParProf.id_matiere;
+
+      if (!matieresDetails[idMatiere]) {
+        matieresDetails[idMatiere] = {
+          id_matiere: idMatiere,
+          nom: matiereEnseigneeParProf.nom, // CHANGEMENT ICI
+          professeur: 'Non assigné',
+          notes_individuelles: [],
+          commentaires_globaux: [],
+        };
+      }
+
+      matieresDetails[idMatiere].professeur = `${professeur.utilisateur.prenom} ${professeur.utilisateur.nom}`;
+
+      matieresDetails[idMatiere].notes_individuelles.push({
+        valeur: parseFloat(note.valeur),
+        date: note.date_note,
+        commentaire: note.commentaire,
+      });
+    }
+
+    let totalMoyennesValides = 0;
+    let nombreMatieresAvecMoyenne = 0;
+
+    const resumeMatieres = Object.values(matieresDetails).map((m) => {
+      const sumNotes = m.notes_individuelles.reduce((sum, currentNote) => sum + currentNote.valeur, 0);
+      const moyenne = m.notes_individuelles.length > 0 ? (sumNotes / m.notes_individuelles.length) : null;
+
+      if (moyenne !== null) {
+        totalMoyennesValides += moyenne;
+        nombreMatieresAvecMoyenne++;
+      }
+
+      return {
+        id_matiere: m.id_matiere,
+        nom: m.nom,  // CHANGEMENT ICI
+        professeur: m.professeur,
+        moyenne: moyenne !== null ? moyenne.toFixed(2) : 'N/A',
+        notes_individuelles: m.notes_individuelles,
+        commentaires: m.commentaires_globaux,
+      };
+    });
+
+    const moyenneGenerale = nombreMatieresAvecMoyenne > 0
+      ? (totalMoyennesValides / nombreMatieresAvecMoyenne).toFixed(2)
+      : 'N/A';
+
+    return {
+      nom: eleve.utilisateur.nom,
+      prenom: eleve.utilisateur.prenom,
+      photo: eleve.utilisateur.photo,
+      contact_parent: eleve.contact_parent,
+      annee: eleve.anneeEtude?.nom,
+      maison: eleve.maison?.nom,
+      matieres: resumeMatieres,
+      moyenne_generale: moyenneGenerale,
+    };
+  }
+
+  async updateProfil(id_utilisateur, profilData) {
+    try {
+      const eleve = await Eleve.findOne({
+        where: { id_eleve: id_utilisateur },
+        include: [{
+          model: Utilisateur,
+          as: 'utilisateur',
+          attributes: ['id_utilisateur', 'nom', 'prenom', 'photo']
+        }]
+      });
+
+      if (!eleve) {
+        throw new Error("Profil de l'élève introuvable.");
+      }
+      if (!eleve.utilisateur) {
+        throw new Error("Utilisateur associé à l'élève introuvable.");
+      }
+
+      const updatedUtilisateurData = {};
+      if (profilData.nom !== undefined) {
+        updatedUtilisateurData.nom = profilData.nom;
+      }
+      if (profilData.prenom !== undefined) {
+        updatedUtilisateurData.prenom = profilData.prenom;
+      }
+      if (profilData.photo !== undefined) {
+        updatedUtilisateurData.photo = profilData.photo;
+      }
+
+      if (Object.keys(updatedUtilisateurData).length > 0) {
+        await eleve.utilisateur.update(updatedUtilisateurData);
+      }
+
+      const updatedEleveData = {};
+      if (profilData.contact_parent !== undefined) {
+        updatedEleveData.contact_parent = profilData.contact_parent;
+      }
+
+      if (Object.keys(updatedEleveData).length > 0) {
+        await eleve.update(updatedEleveData);
+      }
+
+      const updatedProfil = await this.getProfilByUtilisateurId(id_utilisateur);
+      return updatedProfil;
+
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du profil de l'élève:", error);
+      throw error;
+    }
+  }
+}
+
+module.exports = new EleveProfilService();*/
+
+
+const Utilisateur = require('../Models/Utilisateur');
+const Eleve = require('../Models/Eleve');
+const AnneeEtude = require('../Models/AnneeEtude');
+const Maison = require('../Models/Maison');
+const Matiere = require('../Models/Matiere');
+const Note = require('../Models/Note');
+const Professeur = require('../Models/Professeur');
+const { Op } = require('sequelize');
+
+class EleveProfilService {
+  async getProfilByUtilisateurId(id_utilisateur) {
+    const eleve = await Eleve.findOne({
+      where: { id_eleve: id_utilisateur },
+      include: [
+        {
+          model: Utilisateur,
+          as: 'utilisateur',
+          attributes: ['nom', 'prenom', 'photo', 'email', 'id_role'],
+        },
+        {
+          model: AnneeEtude,
+          as: 'anneeEtude',
+          attributes: ['nom'],
+        },
+        {
+          model: Maison,
+          as: 'maison',
+          attributes: ['nom'],
+        },
+        {
+          model: Matiere,
+          as: 'matieresSuivies',
+          attributes: ['id_matiere', 'nom', 'description'],
+          through: { attributes: [] }
+        },
+      ],
+    });
+
+    if (!eleve) {
+      console.log(`Aucun élève trouvé pour l'ID utilisateur ${id_utilisateur}.`);
+      return null;
+    }
+
+    const notes = await Note.findAll({
+      where: { id_eleve: eleve.id_eleve },
+      include: [
+        {
+          model: Professeur,
+          as: 'professeurEvaluateur',
+          attributes: ['id_professeur', 'fonction'],
+          include: [
+            {
+              model: Matiere,
+              as: 'matiereEnseignee',
+              attributes: ['id_matiere', 'nom'],
+            },
+            {
+              model: Utilisateur,
+              as: 'utilisateur',
+              attributes: ['nom', 'prenom'],
+            },
+          ],
+        },
+      ],
+    });
+
+    const matieresDetails = {};
+
+    for (const matiereSuivie of eleve.matieresSuivies) {
+      matieresDetails[matiereSuivie.id_matiere] = {
+        id_matiere: matiereSuivie.id_matiere,
+        nom: matiereSuivie.nom,
+        professeur: 'Non assigné',
+        notes_individuelles: [],
+      };
+    }
+
+    for (const note of notes) {
+      const professeur = note.professeurEvaluateur;
+      const matiereEnseigneeParProf = professeur?.matiereEnseignee;
+
+      if (!professeur || !matiereEnseigneeParProf) {
+        console.warn(`Note #${note.id_note} sans professeur ou matière enseignée associée.`);
+        continue;
+      }
+
+      const idMatiere = matiereEnseigneeParProf.id_matiere;
+
+      if (!matieresDetails[idMatiere]) {
+        matieresDetails[idMatiere] = {
+          id_matiere: idMatiere,
+          nom: matiereEnseigneeParProf.nom,
+          professeur: 'Non assigné',
+          notes_individuelles: [],
+        };
+      }
+
+      matieresDetails[idMatiere].professeur = `${professeur.utilisateur.prenom} ${professeur.utilisateur.nom}`;
+
+      matieresDetails[idMatiere].notes_individuelles.push({
+        valeur: parseFloat(note.valeur),
+        date: note.date_note,
+        commentaire: note.commentaire,  // Chaque commentaire lié à la note
+      });
+    }
+
+    let totalMoyennesValides = 0;
+    let nombreMatieresAvecMoyenne = 0;
+
+    const resumeMatieres = Object.values(matieresDetails).map((m) => {
+      const sumNotes = m.notes_individuelles.reduce((sum, currentNote) => sum + currentNote.valeur, 0);
+      const moyenne = m.notes_individuelles.length > 0 ? (sumNotes / m.notes_individuelles.length) : null;
+
+      if (moyenne !== null) {
+        totalMoyennesValides += moyenne;
+        nombreMatieresAvecMoyenne++;
+      }
+
+      return {
+        id_matiere: m.id_matiere,
+        nom: m.nom,
+        professeur: m.professeur,
+        moyenne: moyenne !== null ? moyenne.toFixed(2) : 'N/A',
+        notes_individuelles: m.notes_individuelles,
+      };
+    });
+
+    const moyenneGenerale = nombreMatieresAvecMoyenne > 0
+      ? (totalMoyennesValides / nombreMatieresAvecMoyenne).toFixed(2)
+      : 'N/A';
+
+    return {
+      nom: eleve.utilisateur.nom,
+      prenom: eleve.utilisateur.prenom,
+      photo: eleve.utilisateur.photo,
+      contact_parent: eleve.contact_parent,
+      annee: eleve.anneeEtude?.nom,
+      maison: eleve.maison?.nom,
+      matieres: resumeMatieres,
+      moyenne_generale: moyenneGenerale,
+    };
+  }
+async updateProfil(id_utilisateur, profilData) {
+    try {
+      const eleve = await Eleve.findOne({
+        where: { id_eleve: id_utilisateur },
+        include: [{
+          model: Utilisateur,
+          as: 'utilisateur',
+          attributes: ['id_utilisateur', 'nom', 'prenom', 'photo']
+        }]
+      });
+
+      if (!eleve) {
+        throw new Error("Profil de l'élève introuvable.");
+      }
+      if (!eleve.utilisateur) {
+        throw new Error("Utilisateur associé à l'élève introuvable.");
+      }
+
+      const updatedUtilisateurData = {};
+      if (profilData.nom !== undefined) {
+        updatedUtilisateurData.nom = profilData.nom;
+      }
+      if (profilData.prenom !== undefined) {
+        updatedUtilisateurData.prenom = profilData.prenom;
+      }
+      if (profilData.photo !== undefined) {
+        updatedUtilisateurData.photo = profilData.photo;
+      }
+
+      if (Object.keys(updatedUtilisateurData).length > 0) {
+        await eleve.utilisateur.update(updatedUtilisateurData);
+      }
+
+      const updatedEleveData = {};
+      if (profilData.contact_parent !== undefined) {
+        updatedEleveData.contact_parent = profilData.contact_parent;
+      }
+
+      if (Object.keys(updatedEleveData).length > 0) {
+        await eleve.update(updatedEleveData);
+      }
+
+      const updatedProfil = await this.getProfilByUtilisateurId(id_utilisateur);
+      return updatedProfil;
+
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du profil de l'élève:", error);
+      throw error;
+    }
+  }
+}
+
+
+
 module.exports = new EleveProfilService();
+
