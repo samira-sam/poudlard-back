@@ -13,8 +13,9 @@ class AuthService {
     const existingUser = await Utilisateur.findOne({ where: { email } });
     if (existingUser) throw new Error("L'email est déjà pris");
 
-    // Hacher le mot de passe
-    const hashedPassword = await bcrypt.hash(mot_de_passe, 10);
+    // ⭐ Hacher le mot de passe après avoir supprimé les espaces ⭐
+    const cleanedPassword = mot_de_passe.trim(); // Supprime les espaces au début/fin
+    const hashedPassword = await bcrypt.hash(cleanedPassword, 10);
 
     // Créer un nouvel utilisateur
     const newUser = await Utilisateur.create({
@@ -52,14 +53,43 @@ class AuthService {
       }
     });
 
+    // ⭐⭐⭐ DÉBUT DES LIGNES DE DIAGNOSTIC COMPLÈTES ⭐⭐⭐
+    console.log('--- DIAGNOSTIC CONNEXION AVANCÉ ---');
+    console.log('Utilisateur trouvé :', !!utilisateur); // Vrai si l'objet utilisateur n'est pas null
+
+    if (utilisateur) {
+        console.log('ID Utilisateur :', utilisateur.id_utilisateur);
+        console.log('Email Utilisateur :', utilisateur.email);
+        console.log('Mot de passe fourni (clair) [avant trim] :', mot_de_passe); // Le mot de passe que tu tapes
+        console.log('Mot de passe stocké (haché) :', utilisateur.mot_de_passe); // Le mot de passe de la BDD
+        console.log('Type du mot de passe fourni :', typeof mot_de_passe);
+        console.log('Type du mot de passe stocké :', typeof utilisateur.mot_de_passe);
+        console.log('Longueur du mot de passe fourni [avant trim] :', mot_de_passe ? mot_de_passe.length : 'N/A');
+        console.log('Longueur du mot de passe stocké :', utilisateur.mot_de_passe ? utilisateur.mot_de_passe.length : 'N/A');
+        console.log('Rôle de l\'utilisateur (objet) :', utilisateur.role ? utilisateur.role.toJSON() : 'Aucun rôle trouvé'); // Affiche l'objet rôle
+        console.log('Nom du rôle :', utilisateur.role?.name); // Affiche le nom du rôle
+    }
+    // ⭐⭐⭐ FIN DES LIGNES DE DIAGNOSTIC AVANCÉ ⭐⭐⭐
+
     if (!utilisateur) throw new Error("Email ou mot de passe incorrect");
 
     if (!utilisateur.role) {
       throw new Error("Votre compte n’a pas encore été validé par un administrateur.");
     }
 
-    // Comparer le mot de passe
-    const isMatch = await bcrypt.compare(mot_de_passe, utilisateur.mot_de_passe);
+    // ⭐ Supprime les espaces du mot de passe fourni avant la comparaison ⭐
+    const cleanedPassword = mot_de_passe.trim();
+
+    // Comparer le mot de passe (utilise le mot de passe nettoyé)
+    const isMatch = await bcrypt.compare(cleanedPassword, utilisateur.mot_de_passe);
+
+    // ⭐⭐⭐ NOUVEAU DIAGNOSTIC POUR LE RÉSULTAT DE LA COMPARAISON ⭐⭐⭐
+    console.log('Mot de passe fourni (clair) [après trim] :', cleanedPassword);
+    console.log('Longueur du mot de passe fourni [après trim] :', cleanedPassword ? cleanedPassword.length : 'N/A');
+    console.log('Résultat de bcrypt.compare (isMatch) :', isMatch);
+    // ⭐⭐⭐ FIN DU DIAGNOSTIC ⭐⭐⭐
+
+
     if (!isMatch) throw new Error("Email ou mot de passe incorrect");
 
     // Créer le token JWT avec id + rôle minimal
@@ -97,7 +127,6 @@ class AuthService {
 }
 
 module.exports = new AuthService();
-
 
 
 /*

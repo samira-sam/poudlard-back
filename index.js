@@ -497,6 +497,7 @@ const fs = require('fs');
 const cookieParser = require('cookie-parser');
 
 dotenv.config();
+console.log('FRONTEND_URL chargée :', process.env.FRONTEND_URL); // <-- Ajoute cette ligne temporairement
 
 const app = express();
 

@@ -109,13 +109,15 @@ Utilisateur.init(
     },
 
     // 🔐 Champs pour le mot de passe oublié
-    resetPasswordExpires: {
-      type: DataTypes.DATE,
+  resetPasswordExpires: {
+      type: DataTypes.BIGINT, // ⭐ CORRECTION : DOIT ÊTRE BIGINT pour stocker un timestamp numérique (Date.now())
       allowNull: true,
+      defaultValue: null,
     },
     resetPasswordToken: {
-      type: DataTypes.DATE,
+      type: DataTypes.STRING(255), // ⭐ CORRECTION : DOIT ÊTRE STRING pour stocker la chaîne hexadécimale
       allowNull: true,
+      defaultValue: null, // Bonne pratique : défini à null par défaut
     },
 
   },

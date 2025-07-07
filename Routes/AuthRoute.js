@@ -35,10 +35,10 @@ module.exports = router;*/
 const express = require('express');
 const router = express.Router();
 const AuthController = require('../Controllers/AuthController');
-const ResetPasswordController = require('../Controllers/ResetPasswordController'); // Classe importée
-const resetPasswordController = new ResetPasswordController(); // Instance créée
+const ResetPasswordController = require('../Controllers/ResetPasswordController');
+const resetPasswordController = new ResetPasswordController();
 
-const { authenticate } = require('../Middlewares/Authenticate'); // Middleware auth
+const { authenticate } = require('../Middlewares/Authenticate');
 
 // Route d'inscription
 router.post('/register', AuthController.register);
@@ -50,8 +50,9 @@ router.post('/login', AuthController.login);
 router.get('/me', authenticate, AuthController.getUser);
 router.get('/user', authenticate, AuthController.getUser);
 
+// --- MODIFICATION ICI ---
 // Mot de passe oublié - demande de reset
-router.post('/reset-password-request', (req, res) => resetPasswordController.demanderReset(req, res));
+router.post('/request-password-reset', (req, res) => resetPasswordController.demanderReset(req, res)); // Renommé !
 
 // Mot de passe oublié - soumission du nouveau mot de passe
 router.post('/reset-password/:token', (req, res) => resetPasswordController.resetMotDePasse(req, res));
